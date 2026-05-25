@@ -1,18 +1,7 @@
-import { useState } from 'react'
-import { testAlias } from '@/shared/lib/test'
-import { Button } from '@/shared/ui/Button'
+import { FlowerSurprise } from '@/components/FlowerSurprise'
 
 function App() {
-  const [isActive, setIsActive] = useState(false)
-
-  return (
-    <div>
-      <div>{testAlias}</div>
-      <Button active={isActive} onClick={() => setIsActive(!isActive)}>
-        Кнопка
-      </Button>
-    </div>
-  )
+  return <FlowerSurprise />
 }
 
 export default App

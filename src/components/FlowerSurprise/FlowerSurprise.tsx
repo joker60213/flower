@@ -6,6 +6,8 @@ const petals = Array.from({ length: 8 }, (_, index) => index)
 const drops = Array.from({ length: 7 }, (_, index) => index)
 const decorItems = Array.from({ length: 12 }, (_, index) => index)
 const burstItems = Array.from({ length: 10 }, (_, index) => index)
+const lightnessItems = Array.from({ length: 14 }, (_, index) => index)
+const laughItems = Array.from({ length: 12 }, (_, index) => index)
 const gardenStorageKey = 'flower-surprise-garden'
 
 type FlowerVariant = {
@@ -84,32 +86,44 @@ const flowerVariants: FlowerVariant[] = [
 
 const steps = [
   {
+    label: 'Чудо',
     eyebrow: 'Нежный сюрприз',
     title: 'Маленькое чудо ждёт',
     button: 'Посадить семечко',
   },
   {
+    label: 'Вода',
     eyebrow: 'Первый секрет',
     title: 'Немного нежной воды',
     button: 'Полить семечко',
   },
   {
+    label: 'Тепло',
     eyebrow: 'Он уже растёт',
     title: 'Добавим немного тепла',
     button: 'Согреть росток',
   },
   {
+    label: 'Бутон',
     eyebrow: 'Почти готово',
     title: 'Бутон ждёт момента',
     button: 'Раскрыть цветок 🌸',
   },
   {
+    label: 'Цветок',
     eyebrow: 'Для тебя',
     title: 'Цветок раскрылся',
-    button: 'Показать сюрприз',
+    button: 'Добавить лёгкости',
   },
   {
-    eyebrow: 'Только для тебя',
+    label: 'Лёгкость',
+    eyebrow: 'Когда рядом легко',
+    title: '',
+    button: 'Поймать общий смех',
+  },
+  {
+    label: 'Смех',
+    eyebrow: 'Общий смех',
     title: '',
     button: 'Вырастить ещё',
   },
@@ -171,9 +185,14 @@ export function FlowerSurprise({
   const [grownFlowers, setGrownFlowers] = useState<GrownFlower[]>(loadGarden)
   const [isBouquetOpen, setIsBouquetOpen] = useState(false)
 
-  const isOpen = step >= steps.length - 2
+  const isOpen = step >= 4
   const isFinal = step === steps.length - 1
+  const isCentered = step >= 5
+  const isLightness = step >= 5
+  const isLaugh = step === steps.length - 1
+  const shouldShowMessage = step === 4
   const currentStep = steps[step]
+  const activeStageLabel = name && isOpen ? `${currentStep.label} для ${name}` : currentStep.label
   const messageLines = message.split('\n')
   const bouquetFlowers = isOpen
     ? [...grownFlowers, { ...currentVariant, gardenId: -1 }]
@@ -215,10 +234,26 @@ export function FlowerSurprise({
           [styles.sprout]: step >= 2,
           [styles.bud]: step >= 3,
           [styles.open]: isOpen,
-          [styles.final]: isFinal,
+          [styles.lightness]: isLightness,
+          [styles.laugh]: isLaugh,
+          [styles.final]: isCentered,
         })}
       >
         <div className={styles.sun} aria-hidden="true" />
+
+        <div className={styles.stageRail} aria-label={`Этап: ${activeStageLabel}`}>
+          {steps.map((item, index) => (
+            <span
+              key={item.label}
+              className={clsx(styles.stageTag, {
+                [styles.activeStageTag]: index === step,
+                [styles.passedStageTag]: index < step,
+              })}
+            >
+              {item.label}
+            </span>
+          ))}
+        </div>
 
         {grownFlowers.length > 0 && (
           <div className={styles.garden} aria-hidden="true">
@@ -236,6 +271,22 @@ export function FlowerSurprise({
           ))}
         </div>
 
+        {isLightness && (
+          <div className={styles.lightnessLayer} aria-hidden="true">
+            {lightnessItems.map((item) => (
+              <span key={item} className={styles.lightnessItem} />
+            ))}
+          </div>
+        )}
+
+        {isLaugh && (
+          <div className={styles.laughLayer} aria-hidden="true">
+            {laughItems.map((item) => (
+              <span key={item} className={styles.laughBubble} />
+            ))}
+          </div>
+        )}
+
         <div className={styles.content}>
           <div
             className={clsx(styles.flower, {
@@ -243,7 +294,9 @@ export function FlowerSurprise({
               [styles.sprout]: step >= 2,
               [styles.bud]: step >= 3,
               [styles.open]: isOpen,
-              [styles.final]: isFinal,
+              [styles.lightness]: isLightness,
+              [styles.laugh]: isLaugh,
+              [styles.final]: isCentered,
             })}
             style={getFlowerStyle(currentVariant)}
             onClick={handleFlowerClick}
@@ -278,13 +331,6 @@ export function FlowerSurprise({
           </div>
 
           <div className={styles.textBlock}>
-            <p className={styles.eyebrow}>
-              {name && isOpen
-                ? `${currentStep.eyebrow}, ${name}`
-                : `${currentStep.eyebrow} · ${currentVariant.name}`}
-            </p>
-            {currentStep.title && <h1>{currentStep.title}</h1>}
-
             <div className={styles.progress} aria-label={`Шаг ${step + 1} из ${steps.length}`}>
               {steps.map((item, index) => (
                 <span
@@ -296,10 +342,10 @@ export function FlowerSurprise({
               ))}
             </div>
 
-            {!isFinal && (
+            {shouldShowMessage && (
               <p
                 className={clsx(styles.message, {
-                  [styles.visible]: isOpen,
+                  [styles.visible]: shouldShowMessage,
                 })}
               >
                 {messageLines.map((line, index) => (
@@ -323,7 +369,7 @@ export function FlowerSurprise({
 
             <div className={styles.secondaryActions}>
               <button
-                className={styles.ghostButton}
+                className={clsx(styles.ghostButton, styles.bouquetButton)}
                 type="button"
                 onClick={() => setIsBouquetOpen((value) => !value)}
               >
